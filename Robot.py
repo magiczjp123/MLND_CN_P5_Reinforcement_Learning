@@ -42,11 +42,11 @@ class Robot(object):
         """
         if self.testing:
             # TODO 1. No random choice when testing
-            self.epsilon = self.epsilon0
+            self.epsilon = 1
         else:
             # TODO 2. Update parameters when learning
             self.t += 1
-            self.epsilon = 1 / self.t
+            self.epsilon = self.epsilon * self.epsilon
 
         return self.epsilon
 
@@ -56,8 +56,7 @@ class Robot(object):
         """
 
         # TODO 3. Return robot's current state
-        x, y = self.maze.sense_robot()
-        return self.maze.width * x + y
+        return self.maze.sense_robot()
 
     def create_Qtable_line(self, state):
         """
@@ -68,10 +67,8 @@ class Robot(object):
         # Qtable[state] ={'u':xx, 'd':xx, ...}
         # If Qtable[state] already exits, then do
         # not change it.
-        print('state is ->{}'.format(self.state))
-        if not self.Qtable:
-            if not self.Qtable[state]:
-                self.Qtable[state] = {'u':0,'r':0,'d':0,'l':0}
+        if not state in self.Qtable.keys():
+            self.Qtable[state] = {'u':0,'r':0,'d':0,'l':0}
 
 
     def choose_action(self):
@@ -83,22 +80,24 @@ class Robot(object):
             # TODO 5. Return whether do random choice
             # hint: generate a random number, and compare
             # it with epsilon
-            return self.epsilon <= random.random()
-
+            return self.epsilon > random.random()
+        # print('self.epsilon is ->{}'.format(self.epsilon))
         if self.learning:
             if is_random_exploration():
                 # TODO 6. Return random choose aciton
                 return self.valid_actions[random.randint(0,3)]
             else:
                 # TODO 7. Return action with highest q value
-                for key, item in self.Qtable[self.state]:
-                    if item == max(self.Qtable[self.state].values()):
-                        return key
+                # max_v = max(self.Qtable[self.state].values())
+                # for key, value in self.Qtable[self.state].items():
+                #     if value == max_v:
+                #         return key
+                aciton = max(self.Qtable[self.state], key=self.Qtable[self.state].get)
+                return aciton
         elif self.testing:
             # TODO 7. choose action with highest q value
-            for key, item in self.Qtable[self.state]:
-                        if item == max(self.Qtable[self.state].values()):
-                            return key
+            aciton = max(self.Qtable[self.state], key=self.Qtable[self.state].get)
+            return aciton
         else:
             # TODO 6. Return random choose aciton
             return self.valid_actions[random.randint(0,3)]
@@ -111,7 +110,10 @@ class Robot(object):
 
             # TODO 8. When learning, update the q table according
             # to the given rules
-            self.Qtable[self.state][action] += (self.alpha * (r + (self.gamma * max(self.Qtable[next_state][action]) - self.Qtable[self.state][action])))
+            # self.Qtable[self.state][action] += (self.alpha * (r + (self.gamma * max(self.Qtable[next_state][action]) - self.Qtable[self.state][action])))
+            Qsa = self.Qtable[self.state][action]
+            self.Qtable[self.state][action] = (1 - self.alpha) * Qsa \
+                + self.alpha * (r + self.gamma * max(self.Qtable[next_state].values()))
     def update(self):
         """
         Describle the procedure what to do when update the robot.
@@ -131,9 +133,15 @@ class Robot(object):
             self.update_Qtable(reward, action, next_state) # update q table
             self.update_parameter() # update parameters
 
+        # print("Qtable -> {}".format(self.Qtable))
         return action, reward
 
-
-from Maze import Maze
-g = Maze(maze_size = (6, 10), trap_number = 2)
-robot = Robot(g)
+#
+# from Maze import Maze
+# g = Maze(maze_size = (12, 12), trap_number = 4)
+# robot = Robot(g)
+# robot.set_status(learning=True,testing=False)
+# print(robot.update())
+# print(robot.update())
+# print(robot.update())
+# print(robot.update())
