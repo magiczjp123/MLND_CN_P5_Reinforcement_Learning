@@ -71,7 +71,7 @@ class Robot(object):
         # If Qtable[state] already exits, then do
         # not change it.
         if state not in self.Qtable.keys():
-            self.Qtable[state] = {'u':0,'r':0,'d':0,'l':0}
+            self.Qtable[state] = {'u':0.0,'r':0.0,'d':0.0,'l':0.0}
 
     def choose_action(self):
         """
